@@ -1,7 +1,9 @@
 import { Link } from 'react-router-dom'
 import { Settings, Wallet } from 'lucide-react'
+import { useT } from '../i18n/index.js'
 
 export default function TopAppBar() {
+  const t = useT()
   return (
     <header className="app-bar">
       <div className="app-bar-inner">
@@ -11,7 +13,7 @@ export default function TopAppBar() {
           </span>
           PennyTrack
         </Link>
-        <Link to="/settings" className="icon-btn" aria-label="Settings" title="Settings">
+        <Link to="/settings" className="icon-btn" aria-label={t('Settings')} title={t('Settings')}>
           <Settings size={19} />
         </Link>
       </div>

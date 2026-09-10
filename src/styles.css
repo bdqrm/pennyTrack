@@ -1207,3 +1207,28 @@ select {
   background: var(--accent);
   color: #fff;
 }
+
+/* ---------- RTL ---------- */
+
+html[dir="rtl"] .sidebar {
+  inset: 0 0 0 auto;
+  border-right: none;
+  border-left: 1px solid var(--border);
+}
+
+@media (min-width: 920px) {
+  html[dir="rtl"] .app-right {
+    margin-left: 0;
+    margin-right: 260px;
+  }
+}
+
+html[dir="rtl"] .search-input {
+  padding-left: 14px;
+  padding-right: 40px;
+}
+
+html[dir="rtl"] .search-wrap svg {
+  left: auto;
+  right: 13px;
+}

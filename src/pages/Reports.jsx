@@ -4,6 +4,7 @@ import PageHeader from '../components/PageHeader.jsx'
 import useEnrichedExpenses from '../hooks/useEnrichedExpenses.js'
 import { useDataStore } from '../store/dataStore.js'
 import { useCurrency } from '../store/settingsStore.js'
+import { useT, useLang, categoryName, pluralWord } from '../i18n/index.js'
 import { budgetRepository } from '../repositories/repositories.js'
 import { formatMoney } from '../utils/currency.js'
 import { formatMonthYear } from '../utils/date.js'
@@ -18,6 +19,8 @@ import {
 
 export default function Reports() {
   const currency = useCurrency()
+  const t = useT()
+  const lang = useLang()
   const expenses = useEnrichedExpenses()
   const categories = useDataStore((s) => s.categories)
 
@@ -63,7 +66,7 @@ export default function Reports() {
   }, [expenses, monthKey])
 
   const trend = useMemo(() => monthlyTotals(expenses, 3), [expenses])
-  const maxTrend = Math.max(1, ...trend.map((t) => t.amount))
+  const maxTrend = Math.max(1, ...trend.map((tt) => tt.amount))
 
   const budgetAmount = monthBudget ? Number(monthBudget.amount) : 0
   const budgetPct = budgetAmount > 0 ? Math.min(100, Math.round((total / budgetAmount) * 100)) : 0
@@ -78,25 +81,25 @@ export default function Reports() {
 
   return (
     <div>
-      <PageHeader title="Reports" subtitle="Spending breakdown by month." />
+      <PageHeader title={t('Reports')} subtitle={t('Spending breakdown by month.')} />
 
       <div className="month-nav">
-        <button className="icon-btn" aria-label="Previous month" onClick={() => shiftMonth(-1)}>
+        <button className="icon-btn" aria-label={t('Previous month')} onClick={() => shiftMonth(-1)}>
           <ChevronLeft size={19} />
         </button>
         <span className="month-nav-label">{monthLabel}</span>
-        <button className="icon-btn" aria-label="Next month" onClick={() => shiftMonth(1)}>
+        <button className="icon-btn" aria-label={t('Next month')} onClick={() => shiftMonth(1)}>
           <ChevronRight size={19} />
         </button>
       </div>
 
       <div className="card fade-up">
         <div className="card-header">
-          <span className="card-header-label">Total spent</span>
+          <span className="card-header-label">{t('Total spent')}</span>
         </div>
         <div className="stat-big">{formatMoney(total, currency)}</div>
         <div className="budget-caption">
-          {count === 0 ? 'No expenses recorded.' : `${count} expense${count === 1 ? '' : 's'} this month`}
+          {count === 0 ? t('No expenses recorded.') : `${count} ${pluralWord(lang, count)} ${t('this month')}`}
         </div>
 
         {budgetAmount > 0 && (
@@ -113,8 +116,11 @@ export default function Reports() {
             </div>
             <div className="cat-budget-limit">
               {budgetRemaining >= 0
-                ? `${formatMoney(budgetRemaining, currency)} left of ${formatMoney(budgetAmount, currency)}`
-                : `over budget by ${formatMoney(Math.abs(budgetRemaining), currency)}`}
+                ? t('{amount} left of {total}', {
+                    amount: formatMoney(budgetRemaining, currency),
+                    total: formatMoney(budgetAmount, currency),
+                  })
+                : t('over budget by {amount}', { amount: formatMoney(Math.abs(budgetRemaining), currency) })}
             </div>
           </>
         )}
@@ -126,15 +132,15 @@ export default function Reports() {
             <div className="empty-icon">
               <FileBarChart size={26} />
             </div>
-            <p>No spending data for {monthLabel}.</p>
-            <p className="text-muted">Add expenses to see charts for this month.</p>
+            <p>{t('No spending data for {month}.', { month: monthLabel })}</p>
+            <p className="text-muted">{t('Add expenses to see charts for this month.')}</p>
           </div>
         </div>
       ) : (
         <>
           <div className="card fade-up" style={{ marginTop: 16, animationDelay: '80ms' }}>
             <div className="card-header">
-              <span className="card-header-label">Daily spending</span>
+              <span className="card-header-label">{t('Daily spending')}</span>
             </div>
             <div className="day-chart">
               {dayChart.map((d) => (
@@ -156,12 +162,13 @@ export default function Reports() {
 
           <div className="card fade-up" style={{ marginTop: 16, animationDelay: '160ms' }}>
             <div className="card-header">
-              <span className="card-header-label">Top categories · share of total</span>
+              <span className="card-header-label">{t('Top categories · share of total')}</span>
             </div>
             {topCategories.map((row) => {
               const Icon = row.category.icon
+              const name = categoryName(row.category, lang)
               const share = total > 0 ? Math.round((row.amount / total) * 100) : 0
-              const sharePct = total > 0 ? (row.amount / Math.max(...topCategories.map((t) => t.amount))) * 100 : 0
+              const sharePct = total > 0 ? (row.amount / Math.max(...topCategories.map((tt) => tt.amount))) * 100 : 0
               return (
                 <div key={row.categoryId} className="share-row">
                   <span className="expense-badge" style={{ background: `${row.category.color}2e`, color: '#fff' }}>
@@ -169,7 +176,7 @@ export default function Reports() {
                   </span>
                   <div className="share-meta">
                     <div className="cat-budget-name">
-                      <span>{row.category.name}</span>
+                      <span>{name}</span>
                       <span>{formatMoney(row.amount, currency)}</span>
                     </div>
                     <div className="progress" style={{ marginTop: 6 }}>
@@ -178,7 +185,7 @@ export default function Reports() {
                         style={{ width: `${Math.max(2, sharePct)}%`, background: row.category.color }}
                       />
                     </div>
-                    <div className="cat-budget-limit">{share}% of total</div>
+                    <div className="cat-budget-limit">{t('{n}% of total', { n: share })}</div>
                   </div>
                 </div>
               )
@@ -189,22 +196,22 @@ export default function Reports() {
 
       <div className="card fade-up" style={{ marginTop: 16, animationDelay: '120ms' }}>
         <div className="card-header">
-          <span className="card-header-label">Last 3 months</span>
+          <span className="card-header-label">{t('Last 3 months')}</span>
         </div>
         <div className="trend-chart">
-          {trend.map((t, i) => (
-            <div key={t.monthKey} className="trend-col">
+          {trend.map((tt, i) => (
+            <div key={tt.monthKey} className="trend-col">
               <div
                 className="trend-bar"
                 style={{
-                  height: `${t.amount > 0 ? Math.max(4, (t.amount / maxTrend) * 100) : 4}%`,
+                  height: `${tt.amount > 0 ? Math.max(4, (tt.amount / maxTrend) * 100) : 4}%`,
                   background: i === trend.length - 1 ? 'var(--accent)' : 'var(--text-faint)',
-                  opacity: t.amount > 0 ? 1 : 0.35,
+                  opacity: tt.amount > 0 ? 1 : 0.35,
                 }}
-                title={formatMoney(t.amount, currency)}
+                title={formatMoney(tt.amount, currency)}
               />
               <div className="trend-label">
-                {formatMonthYear(new Date(Number(t.monthKey.slice(0, 4)), Number(t.monthKey.slice(5)) - 1, 1))
+                {formatMonthYear(new Date(Number(tt.monthKey.slice(0, 4)), Number(tt.monthKey.slice(5)) - 1, 1))
                   .split(' ')[0]
                   .slice(0, 3)}
               </div>
@@ -212,7 +219,7 @@ export default function Reports() {
           ))}
         </div>
         <div className="cat-budget-limit" style={{ marginTop: 8 }}>
-          {trend.map((t) => `${t.monthKey} · ${formatMoney(t.amount, currency)}`).join('   ')}
+          {trend.map((tt) => `${tt.monthKey} · ${formatMoney(tt.amount, currency)}`).join('   ')}
         </div>
       </div>
     </div>

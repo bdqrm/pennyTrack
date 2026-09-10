@@ -5,6 +5,7 @@ import TopAppBar from './components/TopAppBar.jsx'
 import { BottomTabBar, Sidebar } from './components/Navigation.jsx'
 import { useDataStore } from './store/dataStore.js'
 import { useSettingsStore } from './store/settingsStore.js'
+import { setLang } from './i18n/lang.js'
 import Dashboard from './pages/Dashboard.jsx'
 import History from './pages/History.jsx'
 import AddExpense from './pages/AddExpense.jsx'
@@ -70,6 +71,7 @@ export default function App() {
   const dataReady = useDataStore((s) => s.ready)
   const settingsReady = useSettingsStore((s) => s.ready)
   const theme = useSettingsStore((s) => s.theme)
+  const lang = useSettingsStore((s) => s.lang)
 
   useEffect(() => {
     loadData()
@@ -80,7 +82,10 @@ export default function App() {
     const root = document.documentElement
     root.classList.toggle('theme-dark', theme === 'dark')
     root.classList.toggle('theme-light', theme === 'light')
-  }, [theme])
+    root.lang = lang || 'en'
+    root.dir = lang === 'ar' ? 'rtl' : 'ltr'
+    setLang(lang || 'en')
+  }, [theme, lang])
 
   return (
     <HashRouter>

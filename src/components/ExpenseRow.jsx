@@ -1,8 +1,10 @@
 import { Trash2 } from 'lucide-react'
 import { formatSigned } from '../utils/currency.js'
 import { formatDateGroup } from '../utils/date.js'
+import { useT } from '../i18n/index.js'
 
 export default function ExpenseRow({ expense, currency, onOpen, onDelete }) {
+  const t = useT()
   const color = expense.color || '#8B8B93'
 
   return (
@@ -16,7 +18,7 @@ export default function ExpenseRow({ expense, currency, onOpen, onDelete }) {
       </span>
       <div className="expense-body">
         <div className="expense-title">
-          {expense.note || expense.categoryName || 'Expense'}
+          {expense.note || expense.categoryName || t('Expense')}
         </div>
         <div className="expense-meta">
           {formatDateGroup(expense.date)} · {expense.categoryName}
@@ -26,7 +28,7 @@ export default function ExpenseRow({ expense, currency, onOpen, onDelete }) {
       {onDelete && (
         <button
           className="expense-delete"
-          aria-label="Delete expense"
+          aria-label={t('Delete expense')}
           onClick={(e) => {
             e.stopPropagation()
             onDelete(expense)

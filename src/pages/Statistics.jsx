@@ -5,22 +5,25 @@ import { LinkRow } from '../components/CardHeader.jsx'
 import useEnrichedExpenses from '../hooks/useEnrichedExpenses.js'
 import { useDataStore } from '../store/dataStore.js'
 import { useCurrency } from '../store/settingsStore.js'
+import { useT, useLang, categoryName, pluralWord } from '../i18n/index.js'
 import { formatMoney } from '../utils/currency.js'
 import { currentMonthKey, formatDayShort, lastNDays } from '../utils/date.js'
 import { filterByMonth, sum } from '../utils/stats.js'
 
-const PERIODS = [
-  { id: 'month', label: 'This month' },
-  { id: 'all', label: 'All time' },
-]
-
 export default function Statistics() {
   const currency = useCurrency()
+  const t = useT()
+  const lang = useLang()
   const expenses = useEnrichedExpenses()
   const categories = useDataStore((s) => s.categories)
   const [period, setPeriod] = useState('month')
 
   const monthKey = currentMonthKey()
+
+  const PERIODS = [
+    { id: 'month', label: t('This month') },
+    { id: 'all', label: t('All time') },
+  ]
 
   const periodExpenses = useMemo(() => {
     return period === 'month' ? filterByMonth(expenses, monthKey) : expenses
@@ -35,11 +38,12 @@ export default function Statistics() {
     return [...totals.entries()]
       .map(([categoryId, amount]) => ({
         category: categories.find((c) => c.id === categoryId) ?? categories[0],
+        name: categoryName(categories.find((c) => c.id === categoryId) ?? categories[0], lang),
         amount,
       }))
       .sort((a, b) => b.amount - a.amount)
       .map((row) => ({ ...row, pct: max > 0 ? (row.amount / max) * 100 : 0 }))
-  }, [periodExpenses, categories])
+  }, [periodExpenses, categories, lang])
 
   const byDay = useMemo(() => {
     const days = lastNDays(7)
@@ -56,9 +60,9 @@ export default function Statistics() {
   return (
     <div>
       <PageHeader
-        title="Statistics"
-        subtitle={`${formatMoney(totalPeriod, currency)} spent · ${periodExpenses.length} expense${periodExpenses.length === 1 ? '' : 's'}`}
-        action={<LinkRow to="/reports">Report</LinkRow>}
+        title={t('Statistics')}
+        subtitle={`${formatMoney(totalPeriod, currency)} ${t('spent')} · ${periodExpenses.length} ${pluralWord(lang, periodExpenses.length)}`}
+        action={<LinkRow to="/reports">{t('Report')}</LinkRow>}
       />
 
       <div className="segmented">
@@ -79,18 +83,18 @@ export default function Statistics() {
             <div className="empty-icon">
               <BarChart3 size={26} />
             </div>
-            <p>No spending data for this period.</p>
-            <p className="text-muted">Add expenses to see your statistics.</p>
+            <p>{t('No spending data for this period.')}</p>
+            <p className="text-muted">{t('Add expenses to see your statistics.')}</p>
           </div>
         </div>
       ) : (
         <>
           <div className="card fade-up" style={{ paddingBottom: 8 }}>
             <h2 style={{ fontSize: 18, fontWeight: 700, margin: '0 0 4px' }}>
-              Spending by category
+              {t('Spending by category')}
             </h2>
             <p className="muted" style={{ margin: 0 }}>
-              {period === 'month' ? 'Current month' : 'All recorded expenses'}
+              {period === 'month' ? t('Current month') : t('All recorded expenses')}
             </p>
             <div style={{ marginTop: 10 }}>
               {byCategory.map((row, i) => (
@@ -116,9 +120,9 @@ export default function Statistics() {
           </div>
 
           <div className="card fade-up" style={{ marginTop: 8, paddingBottom: 8, animationDelay: '80ms' }}>
-            <h2 style={{ fontSize: 18, fontWeight: 700, margin: '0 0 4px' }}>Spending by day</h2>
+            <h2 style={{ fontSize: 18, fontWeight: 700, margin: '0 0 4px' }}>{t('Spending by day')}</h2>
             <p className="muted" style={{ margin: 0 }}>
-              Last 7 days
+              {t('Last 7 days')}
             </p>
             <div style={{ marginTop: 10 }}>
               {byDay.map((d, i) => (
@@ -126,7 +130,7 @@ export default function Statistics() {
                   <div className="bar-row">
                     <div className="bar-meta">
                       <div className="bar-name">{d.label}</div>
-                      <div className="bar-sub">{d.amount > 0 ? formatMoney(d.amount, currency) : 'no expenses'}</div>
+                      <div className="bar-sub">{d.amount > 0 ? formatMoney(d.amount, currency) : t('no expenses')}</div>
                     </div>
                     <div className="bar-track">
                       <div

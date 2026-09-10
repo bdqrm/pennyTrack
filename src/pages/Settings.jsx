@@ -3,32 +3,55 @@ import { Download, ShieldCheck } from 'lucide-react'
 import PageHeader from '../components/PageHeader.jsx'
 import { LinkRow } from '../components/CardHeader.jsx'
 import { useSettingsStore } from '../store/settingsStore.js'
+import { useCurrency } from '../store/settingsStore.js'
+import { useT } from '../i18n/index.js'
+import { LANGUAGES } from '../i18n/translations.js'
 import { CURRENCIES, formatMoney } from '../utils/currency.js'
 
 export default function Settings() {
-  const currency = useSettingsStore((s) => s.currency)
+  const t = useT()
+  const currency = useCurrency()
   const theme = useSettingsStore((s) => s.theme)
   const firstDayOfWeek = useSettingsStore((s) => s.firstDayOfWeek)
+  const lang = useSettingsStore((s) => s.lang)
   const setPreference = useSettingsStore((s) => s.setPreference)
 
   return (
     <div>
-      <PageHeader title="Settings" subtitle="Preferences are stored locally on this device." />
+      <PageHeader title={t('Settings')} subtitle={t('Preferences are stored locally on this device.')} />
 
       <InstallPrompt />
 
       <div className="card" style={{ marginBottom: 16 }}>
         <SettingRow
-          title="Categories"
-          desc="Add, rename, recolor or change icons for your spending categories."
-          control={<LinkRow to="/categories">Manage</LinkRow>}
+          title={t('Categories')}
+          desc={t('Add, rename, recolor or change icons for your spending categories.')}
+          control={<LinkRow to="/categories">{t('Manage')}</LinkRow>}
         />
       </div>
 
       <div className="card">
         <SettingRow
-          title="Currency"
-          desc={`Displayed amount format: ${formatMoney(1234.56, currency)}`}
+          title={t('Language')}
+          desc={t('Choose the language of the interface.')}
+          control={
+            <select
+              className="select-input select-input-compact"
+              value={lang}
+              onChange={(e) => setPreference('lang', e.target.value)}
+            >
+              {LANGUAGES.map((l) => (
+                <option key={l.code} value={l.code}>
+                  {l.name}
+                </option>
+              ))}
+            </select>
+          }
+        />
+
+        <SettingRow
+          title={t('Currency')}
+          desc={t('Displayed amount format: {preview}', { preview: formatMoney(1234.56, currency) })}
           control={
             <select
               className="select-input select-input-compact"
@@ -45,31 +68,31 @@ export default function Settings() {
         />
 
         <SettingRow
-          title="Theme"
-          desc="Appearance of the interface."
+          title={t('Theme')}
+          desc={t('Appearance of the interface.')}
           control={
             <select
               className="select-input select-input-compact"
               value={theme}
               onChange={(e) => setPreference('theme', e.target.value)}
             >
-              <option value="dark">Dark</option>
-              <option value="light">Light</option>
+              <option value="dark">{t('Dark')}</option>
+              <option value="light">{t('Light')}</option>
             </select>
           }
         />
 
         <SettingRow
-          title="First day of week"
-          desc="Used for weekly summaries and statistics."
+          title={t('First day of week')}
+          desc={t('Used for weekly summaries and statistics.')}
           control={
             <select
               className="select-input select-input-compact"
               value={String(firstDayOfWeek)}
               onChange={(e) => setPreference('firstDayOfWeek', Number(e.target.value))}
             >
-              <option value="0">Sunday</option>
-              <option value="1">Monday</option>
+              <option value="0">{t('Sunday')}</option>
+              <option value="1">{t('Monday')}</option>
             </select>
           }
         />
@@ -80,9 +103,9 @@ export default function Settings() {
           <ShieldCheck size={20} />
         </span>
         <div>
-          <div style={{ fontWeight: 600, fontSize: 14 }}>Offline & private</div>
+          <div style={{ fontWeight: 600, fontSize: 14 }}>{t('Offline & private')}</div>
           <p className="muted" style={{ margin: '2px 0 0' }}>
-            PennyTrack never sends your expenses anywhere. All data stays on this device.
+            {t('PennyTrack never sends your expenses anywhere. All data stays on this device.')}
           </p>
         </div>
       </div>
@@ -103,6 +126,7 @@ function SettingRow({ title, desc, control }) {
 }
 
 function InstallPrompt() {
+  const t = useT()
   const [deferred, setDeferred] = useState(null)
 
   useEffect(() => {
@@ -127,9 +151,9 @@ function InstallPrompt() {
         <Download size={20} />
       </span>
       <div style={{ flex: 1 }}>
-        <div style={{ fontWeight: 600, fontSize: 14 }}>Install PennyTrack</div>
+        <div style={{ fontWeight: 600, fontSize: 14 }}>{t('Install PennyTrack')}</div>
         <p className="muted" style={{ margin: '2px 0 0' }}>
-          Add it to your home screen to use it like an app, completely offline.
+          {t('Add it to your home screen to use it like an app, completely offline.')}
         </p>
       </div>
       <button
@@ -140,7 +164,7 @@ function InstallPrompt() {
           setDeferred(null)
         }}
       >
-        Install
+        {t('Install')}
       </button>
     </div>
   )

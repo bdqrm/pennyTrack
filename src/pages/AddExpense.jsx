@@ -4,12 +4,15 @@ import { Check, Save } from 'lucide-react'
 import PageHeader from '../components/PageHeader.jsx'
 import { useDataStore } from '../store/dataStore.js'
 import { useCurrency } from '../store/settingsStore.js'
+import { useT, useLang, categoryName } from '../i18n/index.js'
 import { todayStr } from '../utils/date.js'
 
 export default function AddExpense() {
   const { id } = useParams()
   const navigate = useNavigate()
   const currency = useCurrency()
+  const t = useT()
+  const lang = useLang()
   const expenses = useDataStore((s) => s.expenses)
   const categories = useDataStore((s) => s.categories)
   const addExpense = useDataStore((s) => s.addExpense)
@@ -33,11 +36,11 @@ export default function AddExpense() {
   async function handleSave() {
     const value = Number(amount)
     if (!value || value <= 0) {
-      setError('Enter the amount you spent.')
+      setError(t('Enter the amount you spent.'))
       return
     }
     if (!categoryId) {
-      setError('Choose a category.')
+      setError(t('Choose a category.'))
       return
     }
     const payload = { amount: value, categoryId, note, date }
@@ -49,16 +52,16 @@ export default function AddExpense() {
   return (
     <div>
       <PageHeader
-        title={isEdit ? 'Edit Expense' : 'Add Expense'}
+        title={isEdit ? t('Edit Expense') : t('Add Expense')}
         subtitle={
           isEdit
-            ? 'Update the details of this expense.'
-            : 'Record where your money went — it only takes seconds.'
+            ? t('Update the details of this expense.')
+            : t('Record where your money went — it only takes seconds.')
         }
       />
 
       <div className="card fade-up">
-        <label className="field-label">Amount</label>
+        <label className="field-label">{t('Amount')}</label>
         <div className="amount-input-wrap">
           <input
             className="amount-input"
@@ -72,7 +75,7 @@ export default function AddExpense() {
         </div>
 
         <div className="field">
-          <label className="field-label">Category</label>
+          <label className="field-label">{t('Category')}</label>
           <div className="category-grid">
             {categories.map((c, i) => {
               const selected = c.id === categoryId
@@ -90,7 +93,7 @@ export default function AddExpense() {
                   >
                     {c.icon && <c.icon size={19} strokeWidth={2.1} />}
                   </span>
-                  <span className="category-name">{c.name}</span>
+                  <span className="category-name">{categoryName(c, lang)}</span>
                 </button>
               )
             })}
@@ -98,10 +101,11 @@ export default function AddExpense() {
         </div>
 
         <div className="field">
-          <label className="field-label">Note</label>
+          <label className="field-label">{t('Note')}</label>
           <input
             className="text-input"
-            placeholder="Optional — e.g. Lunch with colleagues"
+            data-testid="note-input"
+            placeholder={t('Optional — e.g. Lunch with colleagues')}
             value={note}
             onChange={(e) => setNote(e.target.value)}
             maxLength={120}
@@ -109,7 +113,7 @@ export default function AddExpense() {
         </div>
 
         <div className="field">
-          <label className="field-label">Date</label>
+          <label className="field-label">{t('Date')}</label>
           <input
             className="text-input"
             type="date"
@@ -130,7 +134,7 @@ export default function AddExpense() {
         <div className="field" style={{ marginTop: 26 }}>
           <button className="btn btn-primary btn-block" onClick={handleSave}>
             {isEdit ? <Check size={17} strokeWidth={2.6} /> : <Save size={16} strokeWidth={2.4} />}
-            {isEdit ? 'Save changes' : 'Save expense'}
+            {isEdit ? t('Save changes') : t('Save expense')}
           </button>
         </div>
       </div>

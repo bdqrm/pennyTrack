@@ -1,4 +1,32 @@
+import { useSettingsStore } from '../store/settingsStore.js'
+
 const pad = (n) => String(n).padStart(2, '0')
+
+function currentLang() {
+  return useSettingsStore.getState().lang
+}
+
+const DAY_NAMES = {
+  en: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+  fr: ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'],
+  ar: ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'],
+}
+
+const DAY_SHORT = {
+  en: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+  fr: ['dim.', 'lun.', 'mar.', 'mer.', 'jeu.', 'ven.', 'sam.'],
+  ar: ['أحد', 'اثنين', 'ثلاثاء', 'أربعاء', 'خميس', 'جمعة', 'سبت'],
+}
+
+const MONTH_NAMES = {
+  en: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+  fr: ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'],
+  ar: ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'],
+}
+
+function names(map) {
+  return map[currentLang()] ?? map.en
+}
 
 export function toDateStr(date) {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
@@ -13,37 +41,41 @@ export function parseDateStr(dateStr) {
   return new Date(y, m - 1, d)
 }
 
-const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
-const DAY_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
-
 export function formatLongDate(date) {
-  return `${DAY_NAMES[date.getDay()]}, ${date.getDate()} ${MONTH_NAMES[date.getMonth()]} ${date.getFullYear()}`
+  const days = names(DAY_NAMES)
+  const months = names(MONTH_NAMES)
+  return `${days[date.getDay()]}, ${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`
 }
 
 export function formatHeaderDate(dateStr) {
-  const date = parseDateStr(dateStr)
-  return `${DAY_NAMES[date.getDay()]}, ${date.getDate()} ${MONTH_NAMES[date.getMonth()]} ${date.getFullYear()}`
+  return formatLongDate(parseDateStr(dateStr))
 }
 
 export function formatShortDate(dateStr) {
   const date = parseDateStr(dateStr)
-  return `${DAY_SHORT[date.getDay()]}, ${date.getDate()} ${MONTH_NAMES[date.getMonth()].slice(0, 3)}`
+  const days = names(DAY_SHORT)
+  const months = names(MONTH_NAMES)
+  return `${days[date.getDay()]}, ${date.getDate()} ${months[date.getMonth()].slice(0, 3)}`
 }
 
 export function formatDayShort(dateStr) {
-  return DAY_SHORT[parseDateStr(dateStr).getDay()]
+  return names(DAY_SHORT)[parseDateStr(dateStr).getDay()]
+}
+
+export function formatWeekdayLong(date) {
+  return names(DAY_NAMES)[date.getDay()]
 }
 
 export function formatMonthYear(date) {
-  return `${MONTH_NAMES[date.getMonth()]} ${date.getFullYear()}`
+  return `${names(MONTH_NAMES)[date.getMonth()]} ${date.getFullYear()}`
 }
 
 export function formatDateGroup(dateStr) {
+  const lang = currentLang()
   const today = todayStr()
   const yesterday = toDateStr(new Date(Date.now() - 86400000))
-  if (dateStr === today) return 'Today'
-  if (dateStr === yesterday) return 'Yesterday'
+  if (dateStr === today) return lang === 'en' ? 'Today' : lang === 'fr' ? "Aujourd'hui" : 'اليوم'
+  if (dateStr === yesterday) return lang === 'fr' ? 'Hier' : lang === 'ar' ? 'أمس' : 'Yesterday'
   return formatHeaderDate(dateStr)
 }
 

@@ -5,12 +5,15 @@ import AnimatedMoney from '../components/AnimatedMoney.jsx'
 import useEnrichedExpenses from '../hooks/useEnrichedExpenses.js'
 import { useDataStore } from '../store/dataStore.js'
 import { useCurrency } from '../store/settingsStore.js'
+import { useT, useLang, categoryName } from '../i18n/index.js'
 import { formatMoney } from '../utils/currency.js'
 import { currentMonthKey, formatMonthYear } from '../utils/date.js'
 import { filterByMonth, sum } from '../utils/stats.js'
 
 export default function Budget() {
   const currency = useCurrency()
+  const t = useT()
+  const lang = useLang()
   const budget = useDataStore((s) => s.budget)
   const setBudget = useDataStore((s) => s.setBudget)
   const clearBudget = useDataStore((s) => s.clearBudget)
@@ -54,7 +57,7 @@ export default function Budget() {
   async function handleSave() {
     const value = Number(input)
     if (!value || value <= 0) {
-      setError('Enter a budget amount greater than zero.')
+      setError(t('Enter a budget amount greater than zero.'))
       return
     }
     await setBudget(value)
@@ -62,7 +65,7 @@ export default function Budget() {
   }
 
   async function handleClear() {
-    if (window.confirm('Remove your monthly budget?')) {
+    if (window.confirm(t('Remove your monthly budget?'))) {
       await clearBudget()
       setInput('')
     }
@@ -71,7 +74,7 @@ export default function Budget() {
   async function handleSetLimit(cat) {
     const amount = Number(limitDraft[cat.id])
     if (!amount || amount <= 0) {
-      setLimitErrors((prev) => ({ ...prev, [cat.id]: 'Enter an amount greater than zero.' }))
+      setLimitErrors((prev) => ({ ...prev, [cat.id]: t('Enter an amount greater than zero.') }))
       return
     }
     await setCategoryBudget(monthKey, cat.id, amount)
@@ -86,7 +89,7 @@ export default function Budget() {
   async function handleClearLimit(cat) {
     const row = limitRows.find((r) => r.category.id === cat.id)
     if (!row?.budget) return
-    if (window.confirm(`Remove the ${cat.name} limit?`)) {
+    if (window.confirm(t('Remove the {name} limit?', { name: categoryName(cat, lang) }))) {
       await clearCategoryBudget(row.budget.id)
     }
   }
@@ -94,14 +97,14 @@ export default function Budget() {
   return (
     <div>
       <PageHeader
-        title="Budget"
+        title={t('Budget')}
         subtitle={formatMonthYear(new Date())}
       />
 
       {budgetAmount > 0 && (
         <div className="card fade-up" style={{ marginBottom: 16 }}>
           <div className="card-header">
-            <span className="card-header-label">Monthly budget</span>
+            <span className="card-header-label">{t('Monthly budget')}</span>
             <Target size={18} style={{ color: 'var(--text-faint)' }} />
           </div>
           <div className="budget-value">
@@ -109,8 +112,8 @@ export default function Budget() {
           </div>
           <div className="budget-caption">
             {remaining >= 0
-              ? `remaining of ${formatMoney(budgetAmount, currency)}`
-              : `over budget by ${formatMoney(Math.abs(remaining), currency)}`}
+              ? t('left of {amount}', { amount: formatMoney(budgetAmount, currency) })
+              : t('over budget by {amount}', { amount: formatMoney(Math.abs(remaining), currency) })}
           </div>
           <div className="progress">
             <div
@@ -123,8 +126,8 @@ export default function Budget() {
             />
           </div>
           <div className="progress-footer">
-            <span>{formatMoney(spent, currency)} spent</span>
-            <span>{Math.round(pct)}% used</span>
+            <span>{formatMoney(spent, currency)} {t('spent')}</span>
+            <span>{Math.round(pct)}% {t('used')}</span>
           </div>
         </div>
       )}
@@ -132,8 +135,8 @@ export default function Budget() {
       {budgetAmount > 0 && remaining >= 0 && remaining <= budgetAmount * 0.2 && (
         <div className="alert warning">
           <div>
-            <strong>You're close to your monthly budget.</strong>
-            You have {formatMoney(remaining, currency)} remaining.
+            <strong>{t("You're close to your monthly budget.")}</strong>{' '}
+            {t('You have {amount} remaining.', { amount: formatMoney(remaining, currency) })}
           </div>
         </div>
       )}
@@ -141,24 +144,27 @@ export default function Budget() {
       {budgetAmount > 0 && remaining < 0 && (
         <div className="alert danger">
           <div>
-            <strong>Budget exceeded</strong>
-            You've spent {formatMoney(spent, currency)}. Your budget was{' '}
-            {formatMoney(budgetAmount, currency)}.
+            <strong>{t('Budget exceeded')}</strong>{' '}
+            {t("You've spent {amount}. Your budget was {budget}.", {
+              amount: formatMoney(spent, currency),
+              budget: formatMoney(budgetAmount, currency),
+            })}
           </div>
         </div>
       )}
 
       <div className="card fade-up" style={{ marginTop: 16, animationDelay: '120ms' }}>
         <div className="card-header">
-          <span className="card-header-label">Category budgets</span>
+          <span className="card-header-label">{t('Category budgets')}</span>
         </div>
         {limitRows.length === 0 ? (
           <p className="muted" style={{ margin: 0 }}>
-            No expenses or limits yet this month. Set individual category limits below.
+            {t('No expenses or limits yet this month. Set individual category limits below.')}
           </p>
         ) : null}
         {limitRows.map(({ category: cat, spent: catSpent, budget: catBudget }) => {
           const Icon = cat.icon
+          const name = categoryName(cat, lang)
           const catPct = catBudget ? Math.min(100, Math.round((catSpent / Number(catBudget.amount)) * 100)) : 0
           const catRemaining = catBudget ? Number(catBudget.amount) - catSpent : 0
           const catColor =
@@ -170,7 +176,7 @@ export default function Budget() {
               </span>
               <div className="cat-budget-meta">
                 <div className="cat-budget-name">
-                  <span>{cat.name}</span>
+                  <span>{name}</span>
                   <span>{catSpent > 0 ? formatMoney(catSpent, currency) : '—'}</span>
                 </div>
                 {catBudget && (
@@ -180,14 +186,18 @@ export default function Budget() {
                     </div>
                     <div className={`cat-budget-limit ${catRemaining < 0 ? 'warning' : ''}`}>
                       {catRemaining >= 0
-                        ? `${formatMoney(catRemaining, currency)} left of ${formatMoney(Number(catBudget.amount), currency)}`
-                        : `over by ${formatMoney(Math.abs(catRemaining), currency)}`}
+                        ? t('{amount} left of {total}', {
+                            amount: formatMoney(catRemaining, currency),
+                            total: formatMoney(Number(catBudget.amount), currency),
+                          })
+                        : t('over by {amount}', { amount: formatMoney(Math.abs(catRemaining), currency) })}
                     </div>
                   </>
                 )}
                 <input
                   className="text-input"
-                  placeholder={`Limit ${cat.name}`}
+                  data-testid="cat-budget-input"
+                  placeholder={t('Limit {name}', { name })}
                   inputMode="decimal"
                   style={{ padding: '8px 11px', marginTop: 8 }}
                   value={limitDraft[cat.id] ?? ''}
@@ -203,13 +213,13 @@ export default function Budget() {
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 <button className="btn btn-primary" style={{ padding: '8px 13px' }} onClick={() => handleSetLimit(cat)}>
-                  {catBudget ? 'Update' : 'Set'}
+                  {catBudget ? t('Update') : t('Set')}
                 </button>
                 {catBudget && (
                   <button
                     className="icon-btn"
-                    aria-label={`Remove ${cat.name} limit`}
-                    title={`Remove ${cat.name} limit`}
+                    aria-label={t('Remove {name} limit', { name })}
+                    title={t('Remove {name} limit', { name })}
                     onClick={() => handleClearLimit(cat)}
                   >
                     <Trash2 size={15} />
@@ -222,9 +232,10 @@ export default function Budget() {
       </div>
 
       <div className="card fade-up" style={{ marginTop: 16, animationDelay: '180ms' }}>
-        <label className="field-label">Monthly budget · {formatMonthYear(new Date())}</label>
+        <label className="field-label">{t('Monthly budget · {month}', { month: formatMonthYear(new Date()) })}</label>
         <input
           className="text-input"
+          data-testid="budget-amount"
           inputMode="decimal"
           placeholder="e.g. 3000"
           value={input}
@@ -239,7 +250,7 @@ export default function Budget() {
         )}
         <div className="field" style={{ marginTop: 16, display: 'flex', gap: 10 }}>
           <button className="btn btn-primary" onClick={handleSave} style={{ flex: 1 }}>
-            {budgetAmount > 0 ? 'Update budget' : 'Set budget'}
+            {budgetAmount > 0 ? t('Update budget') : t('Set budget')}
           </button>
           {budgetAmount > 0 && (
             <button className="btn" onClick={handleClear} style={{ border: '1px solid var(--danger)', color: 'var(--danger)' }}>

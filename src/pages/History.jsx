@@ -6,11 +6,14 @@ import ExpenseRow from '../components/ExpenseRow.jsx'
 import useEnrichedExpenses from '../hooks/useEnrichedExpenses.js'
 import { useDataStore } from '../store/dataStore.js'
 import { useCurrency } from '../store/settingsStore.js'
+import { useT, useLang, categoryName, pluralWord } from '../i18n/index.js'
 import { formatDateGroup } from '../utils/date.js'
 
 export default function History() {
   const navigate = useNavigate()
   const currency = useCurrency()
+  const t = useT()
+  const lang = useLang()
   const categories = useDataStore((s) => s.categories)
   const deleteExpense = useDataStore((s) => s.deleteExpense)
   const expenses = useEnrichedExpenses()
@@ -38,32 +41,34 @@ export default function History() {
       if (!map.has(key)) map.set(key, [])
       map.get(key).push(e)
     }
-    const today = new Date().toDateString()
     return [...map.entries()]
       .sort((a, b) => (a[0] < b[0] ? 1 : -1))
-      .map(([key, list], i) => ({
+      .map(([key, list]) => ({
         key,
-        label: i === 0 && list[0]?.date === today.slice(0, 10) ? 'Today' : formatDateGroup(key),
+        label: formatDateGroup(key),
         items: list,
       }))
   }, [filtered])
 
   async function handleDelete(expense) {
-    if (window.confirm(`Delete "${expense.note || expense.categoryName}" (${expense.amount})?`)) {
+    if (window.confirm(t('Delete "{name}" ({amount})?', { name: expense.note || expense.categoryName, amount: expense.amount }))) {
       await deleteExpense(expense.id)
     }
   }
 
   return (
     <div>
-      <PageHeader title="History" subtitle={`${filtered.length} expense${filtered.length === 1 ? '' : 's'}${hasFilters ? ' found' : ''}`} />
+      <PageHeader
+        title={t('History')}
+        subtitle={`${filtered.length} ${pluralWord(lang, filtered.length)}${hasFilters ? ` ${t('found')}` : ''}`}
+      />
 
       <div className="filter-bar">
         <div className="search-wrap">
           <Search size={16} />
           <input
             className="text-input search-input"
-            placeholder="Search expenses…"
+            placeholder={t('Search expenses…')}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
@@ -73,10 +78,10 @@ export default function History() {
           value={categoryId}
           onChange={(e) => setCategoryId(e.target.value)}
         >
-          <option value="">All categories</option>
+          <option value="">{t('All categories')}</option>
           {categories.map((c) => (
             <option key={c.id} value={c.id}>
-              {c.name}
+              {categoryName(c, lang)}
             </option>
           ))}
         </select>
@@ -95,7 +100,7 @@ export default function History() {
               setDate('')
             }}
           >
-            <X size={15} /> Clear
+            <X size={15} /> {t('Clear')}
           </button>
         )}
       </div>
@@ -106,8 +111,8 @@ export default function History() {
             <div className="empty-icon">
               <Receipt size={26} />
             </div>
-            <p>{hasFilters ? 'No expenses match your filters.' : 'No expenses yet.'}</p>
-            <p className="text-muted">Tap + to record your first expense.</p>
+            <p>{hasFilters ? t('No expenses match your filters.') : t('No expenses yet.')}</p>
+            <p className="text-muted">{t('Tap + to record your first expense.')}</p>
           </div>
         </div>
       ) : (

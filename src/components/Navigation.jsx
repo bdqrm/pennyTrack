@@ -1,30 +1,36 @@
 import { NavLink, Link } from 'react-router-dom'
 import { History, BarChart3, Target, Home, Plus, Wallet, FileBarChart } from 'lucide-react'
+import { useT } from '../i18n/index.js'
 
-const ITEMS = [
-  { to: '/', label: 'Home', icon: Home },
-  { to: '/expenses', label: 'History', icon: History },
-  { to: '/statistics', label: 'Statistics', icon: BarChart3 },
-  { to: '/budget', label: 'Budget', icon: Target },
-]
+function useItems() {
+  const t = useT()
+  return [
+    { to: '/', label: t('Home'), icon: Home },
+    { to: '/expenses', label: t('History'), icon: History },
+    { to: '/statistics', label: t('Statistics'), icon: BarChart3 },
+    { to: '/budget', label: t('Budget'), icon: Target },
+  ]
+}
 
-const SIDEBAR_ITEMS = [
-  ...ITEMS,
-  { to: '/reports', label: 'Reports', icon: FileBarChart },
-]
+function useSidebarItems() {
+  const t = useT()
+  return [...useItems(), { to: '/reports', label: t('Reports'), icon: FileBarChart }]
+}
 
 export function BottomTabBar() {
+  const items = useItems()
+  const t = useT()
   return (
     <nav className="bottom-nav">
-      <NavItem to={ITEMS[0].to} label={ITEMS[0].label} icon={ITEMS[0].icon} />
-      <NavItem to={ITEMS[1].to} label={ITEMS[1].label} icon={ITEMS[1].icon} />
+      <NavItem to={items[0].to} label={items[0].label} icon={items[0].icon} />
+      <NavItem to={items[1].to} label={items[1].label} icon={items[1].icon} />
       <div className="fab-wrap">
-        <Link to="/expenses/new" className="fab" aria-label="Add expense" title="Add expense">
+        <Link to="/expenses/new" className="fab" aria-label={t('Add expense')} title={t('Add expense')}>
           <Plus size={26} strokeWidth={2.2} />
         </Link>
       </div>
-      <NavItem to={ITEMS[2].to} label={ITEMS[2].label} icon={ITEMS[2].icon} />
-      <NavItem to={ITEMS[3].to} label={ITEMS[3].label} icon={ITEMS[3].icon} />
+      <NavItem to={items[2].to} label={items[2].label} icon={items[2].icon} />
+      <NavItem to={items[3].to} label={items[3].label} icon={items[3].icon} />
     </nav>
   )
 }
@@ -42,6 +48,8 @@ function NavItem({ to, label, icon: Icon }) {
 }
 
 export function Sidebar() {
+  const items = useSidebarItems()
+  const t = useT()
   return (
     <aside className="sidebar">
       <Link to="/" className="brand">
@@ -50,7 +58,7 @@ export function Sidebar() {
         </span>
         PennyTrack
       </Link>
-      {SIDEBAR_ITEMS.map(({ to, label, icon: Icon }) => (
+      {items.map(({ to, label, icon: Icon }) => (
         <NavLink
           key={to}
           to={to}
@@ -64,7 +72,7 @@ export function Sidebar() {
       <div className="nav-spacer" />
       <Link to="/expenses/new" className="nav-item primary">
         <Plus size={19} strokeWidth={2.4} />
-        Add expense
+        {t('Add expense')}
       </Link>
     </aside>
   )

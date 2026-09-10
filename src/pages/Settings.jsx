@@ -42,7 +42,7 @@ export default function Settings() {
             >
               {LANGUAGES.map((l) => (
                 <option key={l.code} value={l.code}>
-                  {l.name}
+                  {l.label}
                 </option>
               ))}
             </select>

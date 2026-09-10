@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { BarChart3 } from 'lucide-react'
 import PageHeader from '../components/PageHeader.jsx'
+import { LinkRow } from '../components/CardHeader.jsx'
 import useEnrichedExpenses from '../hooks/useEnrichedExpenses.js'
 import { useDataStore } from '../store/dataStore.js'
 import { useCurrency } from '../store/settingsStore.js'
@@ -57,6 +58,7 @@ export default function Statistics() {
       <PageHeader
         title="Statistics"
         subtitle={`${formatMoney(totalPeriod, currency)} spent · ${periodExpenses.length} expense${periodExpenses.length === 1 ? '' : 's'}`}
+        action={<LinkRow to="/reports">Report</LinkRow>}
       />
 
       <div className="segmented">

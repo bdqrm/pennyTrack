@@ -1,5 +1,7 @@
-import { ShieldCheck } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { Download, ShieldCheck } from 'lucide-react'
 import PageHeader from '../components/PageHeader.jsx'
+import { LinkRow } from '../components/CardHeader.jsx'
 import { useSettingsStore } from '../store/settingsStore.js'
 import { CURRENCIES, formatMoney } from '../utils/currency.js'
 
@@ -12,6 +14,16 @@ export default function Settings() {
   return (
     <div>
       <PageHeader title="Settings" subtitle="Preferences are stored locally on this device." />
+
+      <InstallPrompt />
+
+      <div className="card" style={{ marginBottom: 16 }}>
+        <SettingRow
+          title="Categories"
+          desc="Add, rename, recolor or change icons for your spending categories."
+          control={<LinkRow to="/categories">Manage</LinkRow>}
+        />
+      </div>
 
       <div className="card">
         <SettingRow
@@ -86,6 +98,50 @@ function SettingRow({ title, desc, control }) {
         <div className="setting-desc">{desc}</div>
       </div>
       <div className="setting-control">{control}</div>
+    </div>
+  )
+}
+
+function InstallPrompt() {
+  const [deferred, setDeferred] = useState(null)
+
+  useEffect(() => {
+    const onPrompt = (e) => {
+      e.preventDefault()
+      setDeferred(e)
+    }
+    const onInstalled = () => setDeferred(null)
+    window.addEventListener('beforeinstallprompt', onPrompt)
+    window.addEventListener('appinstalled', onInstalled)
+    return () => {
+      window.removeEventListener('beforeinstallprompt', onPrompt)
+      window.removeEventListener('appinstalled', onInstalled)
+    }
+  }, [])
+
+  if (!deferred) return null
+
+  return (
+    <div className="card" style={{ marginBottom: 16, display: 'flex', gap: 12, alignItems: 'center' }}>
+      <span className="expense-badge" style={{ background: 'var(--accent-soft)', color: 'var(--accent)' }}>
+        <Download size={20} />
+      </span>
+      <div style={{ flex: 1 }}>
+        <div style={{ fontWeight: 600, fontSize: 14 }}>Install PennyTrack</div>
+        <p className="muted" style={{ margin: '2px 0 0' }}>
+          Add it to your home screen to use it like an app, completely offline.
+        </p>
+      </div>
+      <button
+        className="btn btn-primary"
+        style={{ padding: '8px 14px' }}
+        onClick={async () => {
+          await deferred.prompt()
+          setDeferred(null)
+        }}
+      >
+        Install
+      </button>
     </div>
   )
 }

@@ -11,6 +11,8 @@ import AddExpense from './pages/AddExpense.jsx'
 import Statistics from './pages/Statistics.jsx'
 import Budget from './pages/Budget.jsx'
 import Settings from './pages/Settings.jsx'
+import Categories from './pages/Categories.jsx'
+import Reports from './pages/Reports.jsx'
 
 function Shell() {
   const location = useLocation()
@@ -37,6 +39,8 @@ function Shell() {
               <Route path="/statistics" element={<Statistics />} />
               <Route path="/budget" element={<Budget />} />
               <Route path="/settings" element={<Settings />} />
+              <Route path="/categories" element={<Categories />} />
+              <Route path="/reports" element={<Reports />} />
               <Route path="*" element={<Dashboard />} />
             </Routes>
           </div>

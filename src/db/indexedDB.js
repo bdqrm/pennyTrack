@@ -1,12 +1,13 @@
 import { openDB } from 'idb'
 
 const DB_NAME = 'pennytrack'
-const DB_VERSION = 1
+const DB_VERSION = 2
 
 export const STORES = {
   expenses: 'expenses',
   categories: 'categories',
   budgets: 'budgets',
+  categoryBudgets: 'categoryBudgets',
   settings: 'settings',
 }
 
@@ -26,6 +27,10 @@ export function getDB() {
         }
         if (!db.objectStoreNames.contains(STORES.budgets)) {
           const store = db.createObjectStore(STORES.budgets, { keyPath: 'id' })
+          store.createIndex('monthKey', 'monthKey')
+        }
+        if (!db.objectStoreNames.contains(STORES.categoryBudgets)) {
+          const store = db.createObjectStore(STORES.categoryBudgets, { keyPath: 'id' })
           store.createIndex('monthKey', 'monthKey')
         }
         if (!db.objectStoreNames.contains(STORES.settings)) {

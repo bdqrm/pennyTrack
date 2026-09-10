@@ -66,11 +66,47 @@ export const categoryRepository = {
         id: category.id,
         name: category.name,
         color: category.color,
+        icon: category.iconKey,
         isDefault: true,
         sortOrder: DEFAULT_CATEGORIES.indexOf(category),
       })
     }
     await tx.done
+  },
+
+  async create(input) {
+    const db = await getDB()
+    const all = await db.getAll(STORES.categories)
+    const category = {
+      id: uid(),
+      name: input.name.trim(),
+      color: input.color,
+      icon: input.icon,
+      isDefault: false,
+      sortOrder: Math.max(0, ...all.map((c) => c.sortOrder ?? 0)) + 1,
+    }
+    await db.put(STORES.categories, category)
+    return category
+  },
+
+  async update(id, patch) {
+    const db = await getDB()
+    const existing = await db.get(STORES.categories, id)
+    if (!existing) throw new Error('Category not found')
+    const updated = { ...existing, ...patch }
+    if (patch.name !== undefined) updated.name = patch.name.trim()
+    await db.put(STORES.categories, updated)
+    return updated
+  },
+
+  async remove(id) {
+    const db = await getDB()
+    await db.delete(STORES.categories, id)
+  },
+
+  async usedCount(id) {
+    const db = await getDB()
+    return db.countFromIndex(STORES.expenses, 'categoryId', id)
   },
 }
 
@@ -106,6 +142,33 @@ export const budgetRepository = {
   async remove(id) {
     const db = await getDB()
     await db.delete(STORES.budgets, id)
+  },
+}
+
+export const categoryBudgetRepository = {
+  async getAllForMonth(monthKey) {
+    const db = await getDB()
+    return db.getAllFromIndex(STORES.categoryBudgets, 'monthKey', monthKey)
+  },
+
+  async setForMonth(monthKey, categoryId, amount) {
+    const db = await getDB()
+    const existing = (await db.getAllFromIndex(STORES.categoryBudgets, 'monthKey', monthKey)).find(
+      (b) => b.categoryId === categoryId,
+    )
+    const budget = {
+      id: existing?.id ?? uid(),
+      monthKey,
+      categoryId,
+      amount: Number(amount),
+    }
+    await db.put(STORES.categoryBudgets, budget)
+    return budget
+  },
+
+  async remove(id) {
+    const db = await getDB()
+    await db.delete(STORES.categoryBudgets, id)
   },
 }
 

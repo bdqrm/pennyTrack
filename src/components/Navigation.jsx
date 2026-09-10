@@ -1,11 +1,16 @@
 import { NavLink, Link } from 'react-router-dom'
-import { History, BarChart3, Target, Home, Plus, Wallet } from 'lucide-react'
+import { History, BarChart3, Target, Home, Plus, Wallet, FileBarChart } from 'lucide-react'
 
 const ITEMS = [
   { to: '/', label: 'Home', icon: Home },
   { to: '/expenses', label: 'History', icon: History },
   { to: '/statistics', label: 'Statistics', icon: BarChart3 },
   { to: '/budget', label: 'Budget', icon: Target },
+]
+
+const SIDEBAR_ITEMS = [
+  ...ITEMS,
+  { to: '/reports', label: 'Reports', icon: FileBarChart },
 ]
 
 export function BottomTabBar() {
@@ -45,7 +50,7 @@ export function Sidebar() {
         </span>
         PennyTrack
       </Link>
-      {ITEMS.map(({ to, label, icon: Icon }) => (
+      {SIDEBAR_ITEMS.map(({ to, label, icon: Icon }) => (
         <NavLink
           key={to}
           to={to}
